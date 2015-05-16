@@ -33,7 +33,7 @@ public class Home extends ActionBarActivity {
 
 
     private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
-    private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", null, null, null);
+    private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", ESTIMOTE_PROXIMITY_UUID, null, null);
 
     private BeaconManager beaconManager;
 
@@ -53,24 +53,13 @@ public class Home extends ActionBarActivity {
         Log.d(TAG, "READY");
         textView.setText("WOOT");
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        postNotification("AAA");
 
-
-        beaconManager.setRangingListener(new BeaconManager.RangingListener() {
-            @Override
-            public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
-                Log.d(TAG, "Ranged beacons: " + beacons);
-                textView.setText("Found something");
-            }
-        });
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
             @Override
             public void onEnteredRegion(Region region, List<Beacon> beacons) {
-//                beacon = beacons.get(0);
-//                button.setEnabled(true);
-//                calculateDistance();
 
-//                ((TextView)(findViewById(R.id.uuid))).setText(region.getProximityUUID());
+                ((TextView)findViewById(R.id.debug2)).setText("Entered region " + beacons.get(0).getMajor() + ":" + beacons.get(0).getMinor() );
+
                 if (isAppInForeground(
                         getApplicationContext())) {
                     toastAlert("Entered region");
@@ -80,16 +69,13 @@ public class Home extends ActionBarActivity {
                     textView.setText("AAA");
                 }
                 System.out.println("ENTER");
-//                vibrator.vibrate(vibTime);
-                //now we need to post that we're in the room
 
 
             }
 
             @Override
             public void onExitedRegion(Region region) {
-//                beacon = null;
-//                button.setEnabled(false);
+
                 if (isAppInForeground(
                         getApplicationContext())) {
                     toastAlert("Exited region");
@@ -99,8 +85,7 @@ public class Home extends ActionBarActivity {
                     postNotification("Out of the region!");
                 }
                 System.out.println("LEAVE");
-//                vibrator.vibrate(exitPattern, -1);//makes a double vibrate on exit
-                //now we need to post that we're out of the room
+
 
             }
         });
@@ -141,45 +126,36 @@ public class Home extends ActionBarActivity {
             @Override
             public void onServiceReady() {
                 try {
-                    beaconManager.startRanging(ALL_ESTIMOTE_BEACONS);
+                    beaconManager.startMonitoring(ALL_ESTIMOTE_BEACONS);
                 } catch (RemoteException e) {
-                    Log.e(TAG, "Cannot start ranging", e);
+                    Log.e(TAG, "Cannot start monitoring", e);
                 }
             }
         });
     }
-
     private void postNotification(String msg) {
-        Intent notifyIntent = new
-                Intent(Home.this,
-                Home.class);
-
-
-        notifyIntent.setFlags(
-                Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-
-        Notification notification = new
-                Notification.Builder(Home.this)
-//                .setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle("Monitoring Region")
+        Intent notifyIntent = new Intent(Home.this, Home.class);
+        notifyIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivities(
+                Home.this,
+                0,
+                new Intent[]{notifyIntent},
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = new Notification.Builder(Home.this)
+                .setContentTitle("Notify Demo")
                 .setContentText(msg)
                 .setAutoCancel(true)
-                .getNotification();
-        notification.defaults |=
-                Notification.DEFAULT_SOUND;
-        notification.defaults |=
-                Notification.DEFAULT_LIGHTS;
+                .setContentIntent(pendingIntent)
+                .build();
+        notification.defaults |= Notification.DEFAULT_SOUND;
+        notification.defaults |= Notification.DEFAULT_LIGHTS;
+        notificationManager.notify(NID, notification);
 
-        notificationManager.notify(NID,/*1 is the notification id*/
-                notification);
     }
-
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_home, menu);
         return true;
     }
@@ -202,7 +178,8 @@ public class Home extends ActionBarActivity {
     @Override
     public void onStop(){
         try {
-            beaconManager.stopRanging(ALL_ESTIMOTE_BEACONS);
+//            beaconManager.stopRanging(ALL_ESTIMOTE_BEACONS);
+            beaconManager.stopMonitoring(ALL_ESTIMOTE_BEACONS);
         } catch (RemoteException e) {
             Log.e(TAG, "Cannot stop but it does not matter now", e);
         }

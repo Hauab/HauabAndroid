@@ -3,7 +3,8 @@
     package="org.kaufer.matthew.hauab" >
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.internet"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
