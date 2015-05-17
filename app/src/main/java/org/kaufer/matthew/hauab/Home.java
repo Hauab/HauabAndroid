@@ -108,6 +108,12 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
         return b.getMajor() + ":" + b.getMinor();
     }
 
+    private String createShortKey(Beacon b){
+        if(b == null)
+            return "---";
+        return b.getMajor() + "";
+    }
+
 //    private final LocationListener locationListener = new LocationListener() {
 //        public void onLocationChanged(Location location) {
 //            textView.setText(location.getLatitude() + ":" + location.getLongitude());
@@ -171,6 +177,7 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
         final TextView title = (TextView)findViewById(R.id.title);
         Typeface typeFace = Typeface.createFromAsset(getAssets(), "fonts/PaytoneOne.ttf");
         title.setTypeface(typeFace);
+        ((TextView)findViewById(R.id.output)).setTypeface(typeFace);
         vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
 
@@ -241,6 +248,7 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
             @Override
             public void onEnteredRegion(Region region, List<Beacon> beacons) {
                 final String key = createKey(beacons.get(0));
+                final String shortKey = createShortKey(beacons.get(0));
 
 
                 aloneZones.child(key).addValueEventListener(new ValueEventListener() {
@@ -269,7 +277,7 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
                         }
 
                         setButtonVisibility(true);
-                        output(currentBeaconAlone, key,"");
+                        output(currentBeaconAlone, shortKey,"");
 //                        EstimoteCloud.getInstance().fetchBeaconDetails(currentBeacon.getMacAddress(), new CloudCallback<BeaconInfo>() {
 //                            @Override
 //                            public void success(BeaconInfo beaconInfo) {
@@ -315,10 +323,10 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
                 button.setVisibility(View.INVISIBLE);
                 if(currentBeaconAlone){
                     currentBeaconAlone = false;
-                    alert("You've left AloneZone " + createKey(currentBeacon));
+                    alert("You've left AloneZone " + createShortKey(currentBeacon));
 
                 } else
-                    alert("Left a zone.");
+                    alert("Left a zone " + createShortKey(currentBeacon));
 
                 currentBeacon = null;
 
