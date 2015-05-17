@@ -7,6 +7,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -79,10 +83,49 @@ public class Home extends ActionBarActivity {
         return b.getMajor() + ":" + b.getMinor();
     }
 
+//    private final LocationListener locationListener = new LocationListener() {
+//        public void onLocationChanged(Location location) {
+//            textView.setText(location.getLatitude() + ":" + location.getLongitude());
+//        }
+//
+//        @Override
+//        public void onStatusChanged(String provider, int status, Bundle extras) {
+//
+//        }
+//
+//        @Override
+//        public void onProviderEnabled(String provider) {
+//
+//        }
+//
+//        @Override
+//        public void onProviderDisabled(String provider) {
+//
+//        }
+//    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        textView = (TextView)findViewById(R.id.debug);
+
+
+//        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+//        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//
+//        if(location != null)
+//            textView.setText(location.getLatitude() + ":" + location.getLongitude());
+//        else
+//            textView.setText("Location null");
+//
+//        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 10, locationListener);
+
+//        double longitude = location.getLongitude();
+//        double latitude = location.getLatitude();
+
+
 
 
         Firebase.setAndroidContext(this);
@@ -109,7 +152,6 @@ public class Home extends ActionBarActivity {
         beaconManager = new BeaconManager(this);
         beaconManager.setBackgroundScanPeriod(
                 TimeUnit.SECONDS.toMillis(1), 0);
-        textView = (TextView)findViewById(R.id.debug);
         Log.d(TAG, "READY");
         textView.setText("WOOT");
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
