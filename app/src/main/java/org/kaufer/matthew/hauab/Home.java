@@ -122,9 +122,7 @@ public class Home extends ActionBarActivity {
 
         textView = (TextView)findViewById(R.id.debug);
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-
-        postNotification("Swaggg");
-
+        
 
 //        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 //        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
