@@ -178,7 +178,7 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
 
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        updateLocation(mLastLocation);
+//        updateLocation(mLastLocation);
 
 //        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 //        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
