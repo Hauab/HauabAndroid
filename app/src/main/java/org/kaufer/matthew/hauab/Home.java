@@ -6,18 +6,25 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -40,12 +47,65 @@ public class Home extends ActionBarActivity {
     private String TAG = "Hauab";
     private int NID = 1;
     private TextView textView;
+    private Firebase ref, aloneZones;
+    private Beacon currentBeacon;
+    private boolean currentBeaconAlone = false;
 
+    private Button button;
+
+    private void setButtonVisibility(boolean visible){
+        if(visible){//make it visible
+            button.setVisibility(View.VISIBLE);
+            button.setEnabled(true);
+        } else {
+            button.setVisibility(View.INVISIBLE);
+            button.setEnabled(false);
+        }
+    }
+
+    private void setButtonToggleState(boolean val){//true makes it green, with create, false is red
+        if(val){
+            button.setText("Enable Alone Zone");
+            button.setTextColor(Color.BLACK);
+        } else {
+            button.setText("Disable Alone Zone");
+            button.setTextColor(Color.RED);
+        }
+    }
+
+    private String createKey(Beacon b){
+        if(b == null)
+            return "---";
+        return b.getMajor() + ":" + b.getMinor();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+
+        Firebase.setAndroidContext(this);
+        ref = new Firebase("https://boiling-inferno-9895.firebaseio.com/");
+        aloneZones = ref.child("zones");
+        button = (Button)findViewById(R.id.button);
+
+        setButtonVisibility(false);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String key = createKey(currentBeacon);
+//                aloneZones.child(currentBeacon.getMajor() + ":" + currentBeacon.getMinor()).setValue(true);//enable the zone
+//                if(button.getBackground().equals(Color.RED)){//disable the alone zone
+//                    aloneZones.child(createKey(currentBeacon)).setValue(false);
+//                } else {
+
+                //if green, set the alone zone as enabled, or true
+                boolean val = button.getCurrentTextColor() == Color.BLACK;
+                aloneZones.child(key).setValue(val);
+                setButtonToggleState(!val);
+            }
+        });
         beaconManager = new BeaconManager(this);
         beaconManager.setBackgroundScanPeriod(
                 TimeUnit.SECONDS.toMillis(1), 0);
@@ -57,34 +117,68 @@ public class Home extends ActionBarActivity {
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
             @Override
             public void onEnteredRegion(Region region, List<Beacon> beacons) {
+                final String key = createKey(beacons.get(0));
 
-                ((TextView)findViewById(R.id.debug2)).setText("Entered region " + beacons.get(0).getMajor() + ":" + beacons.get(0).getMinor() );
 
-                if (isAppInForeground(
-                        getApplicationContext())) {
-                    toastAlert("Entered region");
-                    textView.setText("In the region!");
-                } else {
-                    postNotification("In the region!");
-                    textView.setText("AAA");
-                }
-                System.out.println("ENTER");
+                aloneZones.child(key).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        System.out.println(snapshot.getValue());
+//                        ((TextView)findViewById(R.id.debug2)).setText("Entered region " + key + " " + snapshot.getValue());
+                        currentBeaconAlone = (snapshot.getValue() == true);
+                        if(currentBeaconAlone) {
+                            ((TextView) findViewById(R.id.debug2)).setText("Warning, entering AloneZone " + key);
+                            setButtonToggleState(false);
+                        } else {
+                            setButtonToggleState(true);
+                            ((TextView) findViewById(R.id.debug2)).setText("Entered a zone, but not an AloneZone");
+                        }
+
+//                        aloneZones.child(key)
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+                        System.out.println("The read failed: " + firebaseError.getMessage());
+                    }
+                });
+
+                currentBeacon = beacons.get(0);
+                setButtonVisibility(true);
+//                if (isAppInForeground(
+//                        getApplicationContext())) {
+//                    toastAlert("Entered region");
+//                    textView.setText("In the region!");
+//
+//                } else {
+//                    postNotification("In the region!");
+//                    textView.setText("AAA");
+//                }
+//                System.out.println("ENTER");
 
 
             }
 
             @Override
             public void onExitedRegion(Region region) {
-
-                if (isAppInForeground(
-                        getApplicationContext())) {
-                    toastAlert("Exited region");
-                    textView.setText("Out of the region!");
-
-                } else {
-                    postNotification("Out of the region!");
+                button.setEnabled(false);
+                button.setVisibility(View.INVISIBLE);
+                if(currentBeaconAlone){
+                    currentBeaconAlone = false;
+                    ((TextView)findViewById(R.id.debug2)).setText("You've left AloneZone " + createKey(currentBeacon));
                 }
-                System.out.println("LEAVE");
+
+                currentBeacon = null;
+
+//                if (isAppInForeground(
+//                        getApplicationContext())) {
+//                    toastAlert("Exited region");
+//                    textView.setText("Out of the region!");
+//
+//                } else {
+//                    postNotification("Out of the region!");
+//                }
+//                System.out.println("LEAVE");
 
 
             }
