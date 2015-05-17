@@ -30,7 +30,12 @@ import android.widget.Toast;
 
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
+import com.estimote.sdk.EstimoteSDK;
 import com.estimote.sdk.Region;
+import com.estimote.sdk.cloud.CloudCallback;
+import com.estimote.sdk.cloud.EstimoteCloud;
+import com.estimote.sdk.cloud.model.BeaconInfo;
+import com.estimote.sdk.exception.EstimoteServerException;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -66,6 +71,7 @@ public class Home extends Activity {
 
     private Button button;
     private Vibrator vibrator;
+
 
     private void setButtonVisibility(boolean visible){
         if(visible){//make it visible
@@ -126,12 +132,19 @@ public class Home extends Activity {
         }
     }
 
+    private String getColor(BeaconInfo b){
+        return "color " + b.color;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        EstimoteSDK.initialize(getApplicationContext(), "hauab", "e5377749255f04840acbfe1c8ea8acfa");
+
 
         textView = (TextView)findViewById(R.id.output);
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
@@ -197,18 +210,22 @@ public class Home extends Activity {
 //                        ((TextView)findViewById(R.id.debug2)).setText("Entered region " + key + " " + snapshot.getValue());
                         currentBeaconAlone = (snapshot.getValue() == true);
                         setButtonVisibility(true);
-                        if(currentBeaconAlone) {
+                        output(currentBeaconAlone, key,"");
+//                        EstimoteCloud.getInstance().fetchBeaconDetails(currentBeacon.getMacAddress(), new CloudCallback<BeaconInfo>() {
+//                            @Override
+//                            public void success(BeaconInfo beaconInfo) {
+//                                String color = getColor(beaconInfo);
+//                                output(currentBeaconAlone, key, color);
+//                            }
+//
+//                            @Override
+//                            public void failure(EstimoteServerException e) {
+//                                output(currentBeaconAlone, key, "");
+//                            }
+//                        });
 
 
-                            alert("Warning, entering AloneZone " + key);
-                            setButtonToggleState(false);
-                        } else {
 
-                            alert("Entered a zone, but not an AloneZone, " + key);
-                            setButtonToggleState(true);
-                        }
-
-//                        aloneZones.child(key)
                     }
 
                     @Override
@@ -218,6 +235,7 @@ public class Home extends Activity {
                 });
 
                 currentBeacon = beacons.get(0);
+
 //                if (isAppInForeground(
 //                        getApplicationContext())) {
 //                    toastAlert("Entered region");
@@ -257,6 +275,17 @@ public class Home extends Activity {
 
             }
         });
+    }
+
+    private void output(boolean currentBeaconAlone, String key, String color) {
+        if(currentBeaconAlone) {
+            alert("Warning, entering AloneZone " + key + " " + color);
+            setButtonToggleState(false);
+        } else {
+
+            alert("Entered a zone, but not an AloneZone, " + key + " " + color);
+            setButtonToggleState(true);
+        }
     }
 
     @Override
