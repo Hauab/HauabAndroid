@@ -104,12 +104,26 @@ public class Home extends ActionBarActivity {
 //        }
 //    };
 
+    public void alert(String message){
+        boolean appInForeground = isAppInForeground(getApplicationContext());
+        if(appInForeground){
+            //text, etc.
+            ((TextView) findViewById(R.id.debug2)).setText(message);
+        } else {
+            //notification
+            postNotification(message);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
         textView = (TextView)findViewById(R.id.debug);
+        notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+
+        postNotification("Swaggg");
 
 
 //        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -154,7 +168,6 @@ public class Home extends ActionBarActivity {
                 TimeUnit.SECONDS.toMillis(1), 0);
         Log.d(TAG, "READY");
 //        textView.setText("WOOT");
-        notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
             @Override
@@ -170,11 +183,14 @@ public class Home extends ActionBarActivity {
                         currentBeaconAlone = (snapshot.getValue() == true);
                         setButtonVisibility(true);
                         if(currentBeaconAlone) {
-                            ((TextView) findViewById(R.id.debug2)).setText("Warning, entering AloneZone " + key);
+
+
+                            alert("Warning, entering AloneZone " + key);
                             setButtonToggleState(false);
                         } else {
+
+                            alert("Entered a zone, but not an AloneZone");
                             setButtonToggleState(true);
-                            ((TextView) findViewById(R.id.debug2)).setText("Entered a zone, but not an AloneZone");
                         }
 
 //                        aloneZones.child(key)
@@ -207,10 +223,10 @@ public class Home extends ActionBarActivity {
                 button.setVisibility(View.INVISIBLE);
                 if(currentBeaconAlone){
                     currentBeaconAlone = false;
-                    ((TextView)findViewById(R.id.debug2)).setText("You've left AloneZone " + createKey(currentBeacon));
-                }
+                    alert("You've left AloneZone " + createKey(currentBeacon));
 
-                ((TextView)findViewById(R.id.debug2)).setText("");
+                } else
+                    alert("Left a zone.");
 
                 currentBeacon = null;
 
@@ -279,11 +295,13 @@ public class Home extends ActionBarActivity {
                 new Intent[]{notifyIntent},
                 PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new Notification.Builder(Home.this)
+                .setSmallIcon(R.drawable.halt)
                 .setContentTitle("Notify Demo")
                 .setContentText(msg)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .build();
+
         notification.defaults |= Notification.DEFAULT_SOUND;
         notification.defaults |= Notification.DEFAULT_LIGHTS;
         notificationManager.notify(NID, notification);
