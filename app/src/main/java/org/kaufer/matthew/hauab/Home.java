@@ -153,7 +153,7 @@ public class Home extends ActionBarActivity {
         beaconManager.setBackgroundScanPeriod(
                 TimeUnit.SECONDS.toMillis(1), 0);
         Log.d(TAG, "READY");
-        textView.setText("WOOT");
+//        textView.setText("WOOT");
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
@@ -168,6 +168,7 @@ public class Home extends ActionBarActivity {
                         System.out.println(snapshot.getValue());
 //                        ((TextView)findViewById(R.id.debug2)).setText("Entered region " + key + " " + snapshot.getValue());
                         currentBeaconAlone = (snapshot.getValue() == true);
+                        setButtonVisibility(true);
                         if(currentBeaconAlone) {
                             ((TextView) findViewById(R.id.debug2)).setText("Warning, entering AloneZone " + key);
                             setButtonToggleState(false);
@@ -186,7 +187,6 @@ public class Home extends ActionBarActivity {
                 });
 
                 currentBeacon = beacons.get(0);
-                setButtonVisibility(true);
 //                if (isAppInForeground(
 //                        getApplicationContext())) {
 //                    toastAlert("Entered region");
@@ -210,6 +210,8 @@ public class Home extends ActionBarActivity {
                     ((TextView)findViewById(R.id.debug2)).setText("You've left AloneZone " + createKey(currentBeacon));
                 }
 
+                ((TextView)findViewById(R.id.debug2)).setText("");
+
                 currentBeacon = null;
 
 //                if (isAppInForeground(
@@ -221,7 +223,6 @@ public class Home extends ActionBarActivity {
 //                    postNotification("Out of the region!");
 //                }
 //                System.out.println("LEAVE");
-
 
             }
         });
