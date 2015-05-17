@@ -151,6 +151,7 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -198,11 +199,6 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
         Firebase.setAndroidContext(this);
         ref = new Firebase("https://boiling-inferno-9895.firebaseio.com/");
         aloneZones = ref.child("zones");
-
-        AloneZone zone = new AloneZone(999, 999, true);
-        HashMap<String, AloneZone> map = new HashMap<String, AloneZone>();
-        map.put("test", zone);
-        aloneZones.child("test").setValue(zone);
 //        title.setText("----");
 
 
@@ -340,18 +336,18 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
         });
     }
 
-    private void updateLocation(Location location) {
-        TextView title = (TextView)findViewById(R.id.title);
-        if (location != null) {
-
-//            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-//            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-            title.setText(location.getLatitude() + ":" + location.getLongitude());
-        } else {
-            title.setText("Hauab--" + Math.random());
-        }
-    }
-
+//    private void updateLocation(Location location) {
+//        TextView title = (TextView)findViewById(R.id.title);
+//        if (location != null) {
+//
+////            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+////            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
+////            title.setText(location.getLatitude() + ":" + location.getLongitude());
+//        } else {
+//            title.setText("Hauab--" + Math.random());
+//        }
+//    }
+//
     private void output(boolean currentBeaconAlone, String key, String color) {
         if(currentBeaconAlone) {
             alert("Warning, entering AloneZone " + key + " " + color);
@@ -488,7 +484,7 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
-        updateLocation(location);
+//        updateLocation(location);
     }
 
     protected void createLocationRequest() {
