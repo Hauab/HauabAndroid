@@ -122,7 +122,7 @@ public class Home extends ActionBarActivity {
 
         textView = (TextView)findViewById(R.id.debug);
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        
+
 
 //        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 //        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -294,7 +294,7 @@ public class Home extends ActionBarActivity {
                 PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new Notification.Builder(Home.this)
                 .setSmallIcon(R.drawable.halt)
-                .setContentTitle("Notify Demo")
+                .setContentTitle("Hauab")
                 .setContentText(msg)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
