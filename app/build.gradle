@@ -30,6 +30,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile(name:'estimote-sdk-preview', ext:'aar')
     compile 'com.firebase:firebase-client-android:2.2.4+'
+    compile 'com.google.android.gms:play-services:7.3.0'
+
 
 
 }

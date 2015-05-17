@@ -40,14 +40,20 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static android.app.PendingIntent.getActivities;
 
 
-public class Home extends Activity {
+public class Home extends Activity implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
 
 
@@ -72,6 +78,9 @@ public class Home extends Activity {
     private Button button;
     private Vibrator vibrator;
 
+
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
 
     private void setButtonVisibility(boolean visible){
         if(visible){//make it visible
@@ -136,6 +145,14 @@ public class Home extends Activity {
         return "color " + b.color;
     }
 
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //        requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -143,16 +160,24 @@ public class Home extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        EstimoteSDK.initialize(getApplicationContext(), "hauab", "e5377749255f04840acbfe1c8ea8acfa");
+//        EstimoteSDK.initialize(getApplicationContext(), "hauab", "e5377749255f04840acbfe1c8ea8acfa");
+
+
 
 
         textView = (TextView)findViewById(R.id.output);
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        TextView title = (TextView)findViewById(R.id.title);
+        final TextView title = (TextView)findViewById(R.id.title);
         Typeface typeFace = Typeface.createFromAsset(getAssets(), "fonts/PaytoneOne.ttf");
         title.setTypeface(typeFace);
         vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
+
+        buildGoogleApiClient();
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        updateLocation(mLastLocation);
 
 //        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 //        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -173,6 +198,14 @@ public class Home extends Activity {
         Firebase.setAndroidContext(this);
         ref = new Firebase("https://boiling-inferno-9895.firebaseio.com/");
         aloneZones = ref.child("zones");
+
+        AloneZone zone = new AloneZone(999, 999, true);
+        HashMap<String, AloneZone> map = new HashMap<String, AloneZone>();
+        map.put("test", zone);
+        aloneZones.child("test").setValue(zone);
+//        title.setText("----");
+
+
         button = (Button)findViewById(R.id.button);
 
         setButtonVisibility(false);
@@ -187,7 +220,18 @@ public class Home extends Activity {
 
                 //if green, set the alone zone as enabled, or true
                 boolean val = button.getCurrentTextColor() == Color.BLACK;
-                aloneZones.child(key).setValue(val);
+                double lat = -1;
+                double lon = -1;
+                if(mLastLocation != null){
+                    lat = mLastLocation.getLatitude();
+                    lon = mLastLocation.getLongitude();
+                }
+                AloneZone zone = new AloneZone(lat, lon, val);
+//                ((TextView)findViewById(R.id.title)).setText(lat + ":" + lon);
+                HashMap<String, AloneZone> map = new HashMap<String, AloneZone>();
+                map.put(key, zone);
+                aloneZones.child(key).setValue(zone);
+
                 setButtonToggleState(!val);
             }
         });
@@ -206,9 +250,28 @@ public class Home extends Activity {
                 aloneZones.child(key).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
-                        System.out.println(snapshot.getValue());
+//                        System.out.println(snapshot.getValue());
 //                        ((TextView)findViewById(R.id.debug2)).setText("Entered region " + key + " " + snapshot.getValue());
-                        currentBeaconAlone = (snapshot.getValue() == true);
+//                        if(snapshot == null)
+//                            return;
+//
+//                        Log.e(TAG, snapshot.getKey());
+//                        AloneZone snap = (AloneZone)snapshot.getValue();
+//                        Log.e(TAG, snapshot.toString());
+//                        Log.e(TAG, snap.toString());
+
+                        HashMap<String, Object> snap = (HashMap<String, Object>)snapshot.getValue();
+
+
+                        currentBeaconAlone = false;
+                        if(snap == null){
+//                            ((TextView)findViewById(R.id.title)).setText("Null map");
+
+                        } else {
+
+                            currentBeaconAlone = (boolean) snap.get("zone");
+                        }
+
                         setButtonVisibility(true);
                         output(currentBeaconAlone, key,"");
 //                        EstimoteCloud.getInstance().fetchBeaconDetails(currentBeacon.getMacAddress(), new CloudCallback<BeaconInfo>() {
@@ -275,6 +338,18 @@ public class Home extends Activity {
 
             }
         });
+    }
+
+    private void updateLocation(Location location) {
+        TextView title = (TextView)findViewById(R.id.title);
+        if (location != null) {
+
+//            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+//            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
+            title.setText(location.getLatitude() + ":" + location.getLongitude());
+        } else {
+            title.setText("Hauab--" + Math.random());
+        }
     }
 
     private void output(boolean currentBeaconAlone, String key, String color) {
@@ -394,4 +469,38 @@ public class Home extends Activity {
         beaconManager.disconnect();
         super.onDestroy();
     }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        createLocationRequest();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        updateLocation(location);
+    }
+
+    protected void createLocationRequest() {
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+//    protected void startLocationUpdates() {
+//
+//
+//    }
 }
