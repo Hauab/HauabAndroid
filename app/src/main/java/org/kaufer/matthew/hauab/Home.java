@@ -1,5 +1,6 @@
 package org.kaufer.matthew.hauab;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -7,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -18,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 import static android.app.PendingIntent.getActivities;
 
 
-public class Home extends ActionBarActivity {
+public class Home extends Activity {
 
 
 
@@ -108,7 +111,7 @@ public class Home extends ActionBarActivity {
         boolean appInForeground = isAppInForeground(getApplicationContext());
         if(appInForeground){
             //text, etc.
-            ((TextView) findViewById(R.id.debug2)).setText(message);
+            textView.setText(message);
         } else {
             //notification
             postNotification(message);
@@ -117,12 +120,16 @@ public class Home extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        textView = (TextView)findViewById(R.id.debug);
+        textView = (TextView)findViewById(R.id.output);
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-
+        TextView title = (TextView)findViewById(R.id.title);
+        Typeface typeFace = Typeface.createFromAsset(getAssets(), "fonts/PaytoneOne.ttf");
+        title.setTypeface(typeFace);
 
 //        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 //        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
