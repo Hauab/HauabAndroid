@@ -7,6 +7,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Criteria;
@@ -14,6 +16,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.RemoteException;
+import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -58,7 +61,11 @@ public class Home extends Activity {
     private Beacon currentBeacon;
     private boolean currentBeaconAlone = false;
 
+    private long vibTime = 250;
+    private long[] exitPattern  = {0, vibTime, vibTime, vibTime, vibTime};
+
     private Button button;
+    private Vibrator vibrator;
 
     private void setButtonVisibility(boolean visible){
         if(visible){//make it visible
@@ -115,6 +122,7 @@ public class Home extends Activity {
         } else {
             //notification
             postNotification(message);
+            vibrator.vibrate(vibTime);
         }
     }
 
@@ -130,6 +138,8 @@ public class Home extends Activity {
         TextView title = (TextView)findViewById(R.id.title);
         Typeface typeFace = Typeface.createFromAsset(getAssets(), "fonts/PaytoneOne.ttf");
         title.setTypeface(typeFace);
+        vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+
 
 //        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 //        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -194,7 +204,7 @@ public class Home extends Activity {
                             setButtonToggleState(false);
                         } else {
 
-                            alert("Entered a zone, but not an AloneZone");
+                            alert("Entered a zone, but not an AloneZone, " + key);
                             setButtonToggleState(true);
                         }
 
@@ -249,7 +259,11 @@ public class Home extends Activity {
         });
     }
 
-
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
 
     public boolean isAppInForeground(
             Context context) {
