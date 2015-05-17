@@ -422,7 +422,7 @@ public class Home extends Activity implements GoogleApiClient.ConnectionCallback
                 new Intent[]{notifyIntent},
                 PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new Notification.Builder(Home.this)
-                .setSmallIcon(R.drawable.halt)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("Hauab")
                 .setContentText(msg)
                 .setAutoCancel(true)
